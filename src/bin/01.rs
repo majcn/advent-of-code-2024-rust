@@ -4,16 +4,13 @@ use advent_of_code::maneatingape::hash::*;
 use advent_of_code::maneatingape::parse::*;
 
 fn parse_data(input: &str) -> (Vec<u32>, Vec<u32>) {
-    let first = input
+    input
         .lines()
-        .map(|line| line.iter_unsigned().next().unwrap())
-        .collect();
-    let second = input
-        .lines()
-        .map(|line| line.iter_unsigned().nth(1).unwrap())
-        .collect();
-
-    (first, second)
+        .map(|line| {
+            let mut iter = line.iter_unsigned::<u32>();
+            (iter.next().unwrap(), iter.next().unwrap())
+        })
+        .unzip()
 }
 
 pub fn part_one(input: &str) -> Option<u32> {
