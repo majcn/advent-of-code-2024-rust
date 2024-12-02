@@ -11,7 +11,6 @@ fn parse_data(input: &str) -> Vec<Vec<i32>> {
 
 fn is_valid_pair(x: i32, y: i32, inc: bool) -> bool {
     let diff = if inc { y - x } else { x - y };
-
     (1..=3).contains(&diff)
 }
 
@@ -42,28 +41,25 @@ where
 }
 
 fn find_broken_position_with_problem_dampener(line: &[i32]) -> Option<usize> {
-    match find_broken_position(line.iter()) {
-        Some(pos) => {
-            let left = &line[..pos];
-            let right = &line[pos + 1..];
-            find_broken_position(left.iter().chain(right.iter()))?;
+    let broken_position = find_broken_position(line.iter())?;
 
-            if pos > 0 {
-                let left = &line[..pos - 1];
-                let right = &line[pos..];
-                find_broken_position(left.iter().chain(right.iter()))?;
-            }
+    let left = &line[..broken_position];
+    let right = &line[broken_position + 1..];
+    find_broken_position(left.iter().chain(right.iter()))?;
 
-            if pos < line.len() {
-                let left = &line[..pos + 1];
-                let right = &line[pos + 2..];
-                find_broken_position(left.iter().chain(right.iter()))?;
-            }
-
-            Some(pos)
-        }
-        None => None,
+    if broken_position > 0 {
+        let left = &line[..broken_position - 1];
+        let right = &line[broken_position..];
+        find_broken_position(left.iter().chain(right.iter()))?;
     }
+
+    if broken_position < line.len() {
+        let left = &line[..broken_position + 1];
+        let right = &line[broken_position + 2..];
+        find_broken_position(left.iter().chain(right.iter()))?;
+    }
+
+    Some(broken_position)
 }
 
 pub fn part_one(input: &str) -> Option<usize> {
