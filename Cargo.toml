@@ -29,3 +29,4 @@ tinyjson = "2.5.1"
 
 # Solution dependencies
 fastrand = "2.0.1"
+regex = "1.11.1"
