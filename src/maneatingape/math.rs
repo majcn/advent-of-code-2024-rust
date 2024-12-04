@@ -1,4 +1,4 @@
-// source: https://github.com/maneatingape/advent-of-code-rust/blob/de1e3d409efcfb12c1a0cee74bd5813d19dfbf7c/src/util/iter.rs
+// source: https://github.com/maneatingape/advent-of-code-rust/blob/109bf05f8cb5026d97af42b42ea3985afe600dfb/src/util/math.rs
 
 //! Extended mathematical operations.
 //!

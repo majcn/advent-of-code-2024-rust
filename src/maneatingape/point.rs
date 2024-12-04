@@ -1,4 +1,4 @@
-// source: https://github.com/maneatingape/advent-of-code-rust/blob/3a630e95283c960c83137532a859a5b21d1b81f1/src/util/point.rs
+// source: https://github.com/maneatingape/advent-of-code-rust/blob/109bf05f8cb5026d97af42b42ea3985afe600dfb/src/util/point.rs
 
 //! Comprehensive 2 dimensional point implementation. This class is designed to work together
 //! with the [`Grid`] class.
@@ -102,9 +102,9 @@ impl From<u8> for Point {
 
 impl Hash for Point {
     #[inline]
-    fn hash<H: Hasher>(&self, hasher: &mut H) {
-        hasher.write_u32(self.x as u32);
-        hasher.write_u32(self.y as u32);
+    fn hash<H: Hasher>(&self, state: &mut H) {
+        state.write_u32(self.x as u32);
+        state.write_u32(self.y as u32);
     }
 }
 

@@ -1,4 +1,4 @@
-// source: https://github.com/maneatingape/advent-of-code-rust/blob/8d753cc778bdb74c18ecd48f6ab116d86a2ed70a/src/util/hash.rs
+// source: https://github.com/maneatingape/advent-of-code-rust/blob/109bf05f8cb5026d97af42b42ea3985afe600dfb/src/util/hash.rs
 
 //! Provides fast [`HashSet`] and [`HashMap`] implementations based on a simplified implementation of
 //! the fast [Rust C hash algorithm](https://github.com/rust-lang/rustc-hash) also used by

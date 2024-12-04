@@ -1,4 +1,4 @@
-// source: https://github.com/maneatingape/advent-of-code-rust/blob/72c8feb22030d55d7a08f16c119425b2ba759470/src/util/hash.rs
+// source: https://github.com/maneatingape/advent-of-code-rust/blob/109bf05f8cb5026d97af42b42ea3985afe600dfb/src/util/grid.rs
 
 //! Fast 2 dimensional Grid backed by a single `vec`. This module is designed to work with [`Point`].
 //!
@@ -52,14 +52,6 @@ impl Grid<u8> {
 }
 
 impl<T: Copy + PartialEq> Grid<T> {
-    pub fn default_copy<U: Default + Copy>(&self) -> Grid<U> {
-        Grid {
-            width: self.width,
-            height: self.height,
-            bytes: vec![U::default(); (self.width * self.height) as usize],
-        }
-    }
-
     pub fn find(&self, needle: T) -> Option<Point> {
         let to_point = |index| {
             let x = (index as i32) % self.width;
@@ -67,6 +59,26 @@ impl<T: Copy + PartialEq> Grid<T> {
             Point::new(x, y)
         };
         self.bytes.iter().position(|&h| h == needle).map(to_point)
+    }
+}
+
+impl<T: Copy> Grid<T> {
+    pub fn new(width: i32, height: i32, value: T) -> Grid<T> {
+        Grid {
+            width,
+            height,
+            bytes: vec![value; (width * height) as usize],
+        }
+    }
+}
+
+impl<T> Grid<T> {
+    pub fn default_copy<U: Default + Copy>(&self) -> Grid<U> {
+        Grid {
+            width: self.width,
+            height: self.height,
+            bytes: vec![U::default(); (self.width * self.height) as usize],
+        }
     }
 
     #[inline]
@@ -79,14 +91,14 @@ impl<T> Index<Point> for Grid<T> {
     type Output = T;
 
     #[inline]
-    fn index(&self, point: Point) -> &Self::Output {
-        &self.bytes[(self.width * point.y + point.x) as usize]
+    fn index(&self, index: Point) -> &Self::Output {
+        &self.bytes[(self.width * index.y + index.x) as usize]
     }
 }
 
 impl<T> IndexMut<Point> for Grid<T> {
     #[inline]
-    fn index_mut(&mut self, point: Point) -> &mut Self::Output {
-        &mut self.bytes[(self.width * point.y + point.x) as usize]
+    fn index_mut(&mut self, index: Point) -> &mut Self::Output {
+        &mut self.bytes[(self.width * index.y + index.x) as usize]
     }
 }

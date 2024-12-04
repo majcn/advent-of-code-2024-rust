@@ -1,4 +1,4 @@
-// source: https://github.com/maneatingape/advent-of-code-rust/blob/a0c80f6f55c38046e98c8ba69ed7a55139343d41/src/util/parse.rs
+// source: https://github.com/maneatingape/advent-of-code-rust/blob/109bf05f8cb5026d97af42b42ea3985afe600dfb/src/util/parse.rs
 
 //! Extracts and parses signed and unsigned integers from surrounding text and whitespace.
 //!
