@@ -1,6 +1,7 @@
 advent_of_code::solution!(3);
 
 use advent_of_code::maneatingape::parse::*;
+
 use regex::Regex;
 
 enum Command {

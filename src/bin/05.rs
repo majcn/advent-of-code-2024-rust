@@ -3,6 +3,7 @@ advent_of_code::solution!(5);
 use advent_of_code::maneatingape::hash::*;
 use advent_of_code::maneatingape::iter::*;
 use advent_of_code::maneatingape::parse::*;
+
 use std::cmp::Ordering;
 
 fn parse_data(input: &str) -> (FastMap<u32, Vec<u32>>, Vec<Vec<u32>>) {
