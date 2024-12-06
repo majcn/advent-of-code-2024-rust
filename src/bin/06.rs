@@ -63,9 +63,7 @@ fn parse_data(input: &str) -> DataType {
     }
 }
 
-pub fn part_one(input: &str) -> Option<usize> {
-    let data: DataType = parse_data(input);
-
+fn visited_positions(data: &DataType) -> FastSet<Point> {
     let mut my_position = data.position;
     let mut my_direction = data.direction;
 
@@ -76,7 +74,7 @@ pub fn part_one(input: &str) -> Option<usize> {
 
         let next_position = my_position + my_direction;
         if !data.map_size.contains(&next_position) {
-            break;
+            return visit;
         }
 
         if data.obstructions.contains(&next_position) {
@@ -85,8 +83,12 @@ pub fn part_one(input: &str) -> Option<usize> {
             my_position = next_position;
         }
     }
+}
 
-    let result = visit.len();
+pub fn part_one(input: &str) -> Option<u32> {
+    let data: DataType = parse_data(input);
+
+    let result = visited_positions(&data).len() as u32;
 
     Some(result)
 }
@@ -94,22 +96,17 @@ pub fn part_one(input: &str) -> Option<usize> {
 pub fn part_two(input: &str) -> Option<u32> {
     let data: DataType = parse_data(input);
 
-    let mut result = 0;
-
-    for y in data.map_size.min_y..=data.map_size.max_y {
-        for x in data.map_size.min_x..=data.map_size.max_x {
-            let new_obstruction = Point::new(x, y);
-
-            if data.position == new_obstruction || data.obstructions.contains(&new_obstruction) {
-                continue;
-            }
-
-            let mut visit: FastSet<(Point, Point)> = FastSet::new();
+    let result = visited_positions(&data)
+        .into_iter()
+        .filter(|new_obstruction| new_obstruction != &data.position)
+        .filter(|new_obstruction| !data.obstructions.contains(new_obstruction))
+        .filter(|&new_obstruction| {
+            let mut visit = FastSet::new();
 
             let mut my_position = data.position;
             let mut my_direction = data.direction;
 
-            let stuck = loop {
+            loop {
                 if !visit.insert((my_position, my_direction)) {
                     break true;
                 }
@@ -124,13 +121,9 @@ pub fn part_two(input: &str) -> Option<u32> {
                 } else {
                     my_position = next_position;
                 }
-            };
-
-            if stuck {
-                result += 1;
             }
-        }
-    }
+        })
+        .count() as u32;
 
     Some(result)
 }
