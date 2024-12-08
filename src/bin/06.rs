@@ -34,7 +34,7 @@ fn parse_data(input: &str) -> DataType {
     let mut obstructions = FastSet::new();
 
     let height = input.lines().count();
-    let width = input.split_once("\n").unwrap().0.len();
+    let width = input.lines().next().unwrap().len();
 
     for (y, line) in input.lines().enumerate() {
         for (x, v) in line.bytes().enumerate() {

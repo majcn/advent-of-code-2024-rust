@@ -25,7 +25,7 @@ impl MapSize {
 }
 
 fn parse_data(input: &str) -> DataType {
-    let mut data = FastMap::new();
+    let mut data: FastMap<u8, Vec<Point>> = FastMap::new();
 
     let width = input.lines().next().unwrap().len() as i32;
     let height = input.lines().count() as i32;
@@ -33,13 +33,14 @@ fn parse_data(input: &str) -> DataType {
     for (y, line) in input.lines().enumerate() {
         for (x, c) in line.bytes().enumerate() {
             if c != b'.' {
-                (*data.entry(c).or_insert(vec![])).push(Point::new(x as i32, y as i32));
+                let p = Point::new(x as i32, y as i32);
+                data.entry(c).or_default().push(p);
             }
         }
     }
 
     DataType {
-        data: data,
+        data,
         map_size: MapSize {
             min_x: 0,
             max_x: width - 1,
