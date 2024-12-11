@@ -1,5 +1,6 @@
 advent_of_code::solution!(7);
 
+use advent_of_code::majcn::math::*;
 use advent_of_code::maneatingape::parse::*;
 
 fn parse_data(input: &str) -> Vec<Vec<u64>> {
@@ -29,7 +30,7 @@ fn solve(result: u64, left: u64, right: &[u64], use_concatenation: bool) -> bool
     }
 
     if use_concatenation {
-        let third_left_number = left * 10_u64.pow(right[0].ilog(10) + 1) + right[0];
+        let third_left_number = left * 10_u64.pow(right[0].count_digits() as u32) + right[0];
         if solve(result, third_left_number, &right[1..], use_concatenation) {
             return true;
         }
