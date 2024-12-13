@@ -1,8 +1,20 @@
+pub trait SumOfNaturalNumbers<T> {
+    fn sum_of_natural_numbers(self) -> T;
+}
+
+impl SumOfNaturalNumbers<usize> for usize {
+    #[inline]
+    fn sum_of_natural_numbers(self) -> usize {
+        self * (self + 1) / 2
+    }
+}
+
 pub trait DigitCounter {
     fn count_digits(self) -> usize;
 }
 
 impl DigitCounter for u32 {
+    #[inline]
     fn count_digits(self) -> usize {
         match self {
             0..10 => 1,
@@ -19,6 +31,7 @@ impl DigitCounter for u32 {
 }
 
 impl DigitCounter for u64 {
+    #[inline]
     fn count_digits(self) -> usize {
         match self {
             0..10 => 1,
