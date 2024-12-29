@@ -1,8 +1,8 @@
 advent_of_code::solution!(23);
 
-use advent_of_code::maneatingape::hash::*;
+use std::iter::once;
 
-use std::collections::BTreeSet;
+use advent_of_code::maneatingape::hash::*;
 
 struct Computer {}
 
@@ -78,53 +78,46 @@ pub fn part_one(input: &str) -> Option<u32> {
     Some(result)
 }
 
+fn bors_kerbosch(
+    r: Vec<usize>,
+    p: FastSet<usize>,
+    x: FastSet<usize>,
+    g: &FastMap<usize, FastSet<usize>>,
+) -> Vec<usize> {
+    if p.is_empty() && x.is_empty() {
+        return r;
+    }
+
+    let mut max_result = vec![];
+    let mut p = p;
+    let mut x = x;
+
+    let pivot = p.union(&x).max_by_key(|v| g[v].len()).unwrap();
+
+    for v in p.difference(&g[pivot]).copied().collect::<Vec<_>>() {
+        let next_r = r.iter().chain(once(&v)).copied().collect::<Vec<_>>();
+        let next_p = p.intersection(&g[&v]).copied().collect::<FastSet<_>>();
+        let next_x = x.intersection(&g[&v]).copied().collect::<FastSet<_>>();
+
+        let result = bors_kerbosch(next_r, next_p, next_x, g);
+        if result.len() > max_result.len() {
+            max_result = result;
+        }
+
+        p.remove(&v);
+        x.insert(v);
+    }
+
+    max_result
+}
+
 pub fn part_two(input: &str) -> Option<String> {
     let nodes = parse_data(input);
 
-    let mut cache = FastSet::new();
+    let keys = nodes.keys().copied().collect::<FastSet<_>>();
+    let result = bors_kerbosch(vec![], keys, FastSet::new(), &nodes);
 
-    let mut keys = nodes.keys().copied().collect::<Vec<_>>();
-    keys.sort_by(|a, b| nodes[b].len().cmp(&nodes[a].len()));
-
-    let to_check = keys;
-    let group = BTreeSet::new();
-    let mut queue = vec![(to_check, group)];
-    while let Some((c, g)) = queue.pop() {
-        for i in 0..c.len() {
-            let mut is_ok = true;
-            for el in g.iter() {
-                if !nodes[el].contains(&c[i]) {
-                    is_ok = false;
-                    break;
-                }
-            }
-
-            if is_ok {
-                let mut new_g = g.clone();
-                new_g.insert(c[i]);
-
-                if cache.contains(&new_g) {
-                    continue;
-                }
-
-                cache.insert(new_g.clone());
-
-                let mut new_c = c.clone();
-                new_c.remove(i);
-
-                queue.push((new_c, new_g));
-            }
-        }
-    }
-
-    let mut result = cache
-        .iter()
-        .max_by(|x, y| x.len().cmp(&y.len()))
-        .unwrap()
-        .iter()
-        .map(|&x| Computer::decode(x))
-        .collect::<Vec<_>>();
-
+    let mut result = result.into_iter().map(Computer::decode).collect::<Vec<_>>();
     result.sort_unstable();
 
     let result = result.join(",");
