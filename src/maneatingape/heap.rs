@@ -1,4 +1,4 @@
-// source: https://github.com/maneatingape/advent-of-code-rust/blob/109bf05f8cb5026d97af42b42ea3985afe600dfb/src/util/heap.rs
+// source: https://github.com/maneatingape/advent-of-code-rust/blob/177fc32fbfc3ce814b26b10263b2cc081e121b50/src/util/heap.rs
 
 //! [Min heap] more suitable for algorithms such as [Dijkstra] and [A*] than Rust's default
 //! max heap. Splits the sorting key and value, so that you can order items without having
@@ -64,5 +64,10 @@ impl<K: Ord, V> MinHeap<K, V> {
     #[inline]
     pub fn pop(&mut self) -> Option<(K, V)> {
         self.heap.pop().map(|w| (w.key, w.value))
+    }
+
+    #[inline]
+    pub fn peek(&self) -> Option<(&K, &V)> {
+        self.heap.peek().map(|w| (&w.key, &w.value))
     }
 }

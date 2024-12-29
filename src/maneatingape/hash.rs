@@ -1,4 +1,4 @@
-// source: https://github.com/maneatingape/advent-of-code-rust/blob/109bf05f8cb5026d97af42b42ea3985afe600dfb/src/util/hash.rs
+// source: https://github.com/maneatingape/advent-of-code-rust/blob/177fc32fbfc3ce814b26b10263b2cc081e121b50/src/util/hash.rs
 
 //! Provides fast [`HashSet`] and [`HashMap`] implementations based on a simplified implementation of
 //! the fast [Rust C hash algorithm](https://github.com/rust-lang/rustc-hash) also used by
@@ -8,7 +8,7 @@
 //! resistant but slower hashing algorithm. [`FxHasher`] is much faster (between 2x to 5x from my testing).
 use std::collections::{HashMap, HashSet};
 use std::hash::{BuildHasher, Hash, Hasher};
-use std::ops::BitXor;
+use std::ops::BitXor as _;
 
 /// Type alias for [`HashSet`] using [`FxHasher`].
 pub type FastSet<T> = HashSet<T, BuildFxHasher>;

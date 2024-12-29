@@ -1,4 +1,4 @@
-// source: https://github.com/maneatingape/advent-of-code-rust/blob/109bf05f8cb5026d97af42b42ea3985afe600dfb/src/util/iter.rs
+// source: https://github.com/maneatingape/advent-of-code-rust/blob/177fc32fbfc3ce814b26b10263b2cc081e121b50/src/util/iter.rs
 
 //! Add a `chunk` method to [`Iterator`] that duplicates the functionality of the unstable
 //! [`array_chunks`] method.

@@ -1,4 +1,4 @@
-// source: https://github.com/maneatingape/advent-of-code-rust/blob/109bf05f8cb5026d97af42b42ea3985afe600dfb/src/util/point.rs
+// source: https://github.com/maneatingape/advent-of-code-rust/blob/177fc32fbfc3ce814b26b10263b2cc081e121b50/src/util/point.rs
 
 //! Comprehensive 2 dimensional point implementation. This class is designed to work together
 //! with the [`Grid`] class.
@@ -26,7 +26,7 @@
 //! [`clockwise`]: Point::clockwise
 //! [`counter_clockwise`]: Point::counter_clockwise
 //! [`manhattan`]: Point::manhattan
-//! [`Grid`]: crate::util::grid
+//! [`Grid`]: crate::maneatingape::grid
 use std::hash::{Hash, Hasher};
 use std::ops::{Add, AddAssign, Mul, Sub, SubAssign};
 

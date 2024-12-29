@@ -1,4 +1,4 @@
-// source: https://github.com/maneatingape/advent-of-code-rust/blob/109bf05f8cb5026d97af42b42ea3985afe600dfb/src/util/thread.rs
+// source: https://github.com/maneatingape/advent-of-code-rust/blob/177fc32fbfc3ce814b26b10263b2cc081e121b50/src/util/thread.rs
 
 //! Utility methods to spawn a number of
 //! [scoped](https://doc.rust-lang.org/stable/std/thread/fn.scope.html)

@@ -1,4 +1,4 @@
-// source: https://github.com/maneatingape/advent-of-code-rust/blob/109bf05f8cb5026d97af42b42ea3985afe600dfb/src/util/grid.rs
+// source: https://github.com/maneatingape/advent-of-code-rust/blob/177fc32fbfc3ce814b26b10263b2cc081e121b50/src/util/grid.rs
 
 //! Fast 2 dimensional Grid backed by a single `vec`. This module is designed to work with [`Point`].
 //!
@@ -19,13 +19,13 @@
 //! ```
 //!
 //! A convenience [`parse`] method creates a `Grid` directly from a 2 dimenionsal set of
-//! ASCII characters, a common occurence in Advent of Code inputs. The [`default_copy`] function
+//! ASCII characters, a common occurence in Advent of Code inputs. The [`same_size_with`] function
 //! creates a grid of the same size, that can be used for in BFS algorithms for tracking visited
 //! location or for tracking cost in Djikstra.
 //!
-//! [`Point`]: crate::util::point
+//! [`Point`]: crate::maneatingape::point
 //! [`parse`]: Grid::parse
-//! [`default_copy`]: Grid::default_copy
+//! [`same_size_with`]: Grid::same_size_with
 use crate::maneatingape::point::*;
 use std::ops::{Index, IndexMut};
 
@@ -37,6 +37,7 @@ pub struct Grid<T> {
 }
 
 impl Grid<u8> {
+    #[inline]
     pub fn parse(input: &str) -> Self {
         let raw: Vec<_> = input.lines().map(str::as_bytes).collect();
         let width = raw[0].len() as i32;
@@ -49,9 +50,21 @@ impl Grid<u8> {
             bytes,
         }
     }
+
+    pub fn print(&self) {
+        for y in 0..self.height {
+            for x in 0..self.width {
+                let point = Point::new(x, y);
+                print!("{}", self[point] as char);
+            }
+            println!();
+        }
+        println!();
+    }
 }
 
 impl<T: Copy + PartialEq> Grid<T> {
+    #[inline]
     pub fn find(&self, needle: T) -> Option<Point> {
         let to_point = |index| {
             let x = (index as i32) % self.width;
@@ -73,11 +86,12 @@ impl<T: Copy> Grid<T> {
 }
 
 impl<T> Grid<T> {
-    pub fn default_copy<U: Default + Copy>(&self) -> Grid<U> {
+    #[inline]
+    pub fn same_size_with<U: Copy>(&self, value: U) -> Grid<U> {
         Grid {
             width: self.width,
             height: self.height,
-            bytes: vec![U::default(); (self.width * self.height) as usize],
+            bytes: vec![value; (self.width * self.height) as usize],
         }
     }
 
