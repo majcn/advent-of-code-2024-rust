@@ -17,7 +17,7 @@ fn neighbors(
 ) -> Vec<(Point, Point, u32)> {
     let mut result = Vec::with_capacity(4);
 
-    for n_direction in [LEFT, RIGHT, UP, DOWN] {
+    for n_direction in ORTHOGONAL {
         let n_position = position + n_direction;
 
         if grid[n_position] != b'#' {
@@ -42,7 +42,7 @@ fn neighbors(
                 (DOWN, RIGHT) => 1001,
                 (DOWN, UP) => 2001,
 
-                _ => panic!("Invalid state"),
+                _ => unreachable!(),
             };
 
             result.push((n_position, n_direction, cost + n_cost_diff));

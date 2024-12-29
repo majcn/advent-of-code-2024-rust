@@ -28,8 +28,7 @@ fn part_x(grid: &Grid<u8>) -> FastMap<(Point, Point), u32> {
                 continue;
             }
 
-            for step in [LEFT, RIGHT, UP, DOWN] {
-                let next_location = location + step;
+            for next_location in ORTHOGONAL.map(|o| location + o) {
                 if grid.contains(next_location) && grid[next_location] == height + 1 {
                     paths.push((height + 1, next_location));
                 }

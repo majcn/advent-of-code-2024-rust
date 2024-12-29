@@ -14,7 +14,7 @@ fn run_program(a: u64) -> Vec<u8> {
     let mut a = a;
     while a > 0 {
         let b = (a ^ 1) & 7;
-        result.push((((b ^ (a >> b)) ^ 4) & 7) as u8);
+        result.push((b ^ 4 ^ (a >> b) & 7) as u8);
 
         a >>= 3;
     }
