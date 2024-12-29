@@ -40,36 +40,27 @@ fn parse_data(input: &str) -> FastMap<usize, FastSet<usize>> {
 pub fn part_one(input: &str) -> Option<u32> {
     let nodes = parse_data(input);
 
-    let keys = nodes.keys().copied().collect::<Vec<_>>();
-
     let mut result = 0;
 
     let mut visited_t = FastSet::new();
 
-    // TODO: poglej samo sosede
-    // TODO: spremeni hashmap-e v arraye (hitrejsi dostop)
     for computer_i in Computer::encode("ta")..=Computer::encode("tz") {
-        if !nodes.contains_key(&computer_i) {
-            continue;
-        }
+        if let Some(computer_i_connections) = nodes.get(&computer_i) {
+            visited_t.insert(computer_i);
 
-        visited_t.insert(computer_i);
-
-        for (j, computer_j) in keys.iter().enumerate() {
-            if visited_t.contains(computer_j) {
-                continue;
-            }
-
-            for computer_k in keys.iter().skip(j + 1) {
-                if visited_t.contains(computer_k) {
+            for (j, computer_j) in computer_i_connections.iter().enumerate() {
+                if visited_t.contains(computer_j) {
                     continue;
                 }
 
-                if nodes[&computer_i].contains(computer_j)
-                    && nodes[&computer_i].contains(computer_k)
-                    && nodes[computer_j].contains(computer_k)
-                {
-                    result += 1;
+                for computer_k in computer_i_connections.iter().skip(j) {
+                    if visited_t.contains(computer_k) {
+                        continue;
+                    }
+
+                    if nodes[computer_j].contains(computer_k) {
+                        result += 1;
+                    }
                 }
             }
         }
@@ -95,9 +86,9 @@ fn bors_kerbosch(
     let pivot = p.union(&x).max_by_key(|v| g[v].len()).unwrap();
 
     for v in p.difference(&g[pivot]).copied().collect::<Vec<_>>() {
-        let next_r = r.iter().chain(once(&v)).copied().collect::<Vec<_>>();
-        let next_p = p.intersection(&g[&v]).copied().collect::<FastSet<_>>();
-        let next_x = x.intersection(&g[&v]).copied().collect::<FastSet<_>>();
+        let next_r = r.iter().chain(once(&v)).copied().collect();
+        let next_p = p.intersection(&g[&v]).copied().collect();
+        let next_x = x.intersection(&g[&v]).copied().collect();
 
         let result = bors_kerbosch(next_r, next_p, next_x, g);
         if result.len() > max_result.len() {
@@ -114,7 +105,7 @@ fn bors_kerbosch(
 pub fn part_two(input: &str) -> Option<String> {
     let nodes = parse_data(input);
 
-    let keys = nodes.keys().copied().collect::<FastSet<_>>();
+    let keys = nodes.keys().copied().collect();
     let result = bors_kerbosch(vec![], keys, FastSet::new(), &nodes);
 
     let mut result = result.into_iter().map(Computer::decode).collect::<Vec<_>>();
