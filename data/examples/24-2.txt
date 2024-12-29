@@ -1,0 +1,33 @@
+x00: 1
+x01: 0
+x02: 1
+x03: 1
+x04: 0
+y00: 1
+y01: 1
+y02: 1
+y03: 1
+y04: 1
+
+x00 XOR y00 -> e01
+x00 AND y00 -> c00
+x01 XOR y01 -> w01
+x01 AND y01 -> q01
+c00 XOR q01 -> z01
+c00 AND q01 -> z00
+w01 OR e01 -> c01
+x02 XOR y02 -> q02
+x02 AND y02 -> w02
+c01 XOR q02 -> z02
+c01 AND q02 -> e02
+w02 OR e02 -> c02
+x03 XOR y03 -> z03
+x03 AND y03 -> w03
+c02 XOR q03 -> q03
+c02 AND q03 -> e03
+w03 OR e03 -> c03
+x04 XOR y04 -> q04
+x04 AND y04 -> w04
+c03 XOR q04 -> e04
+c03 AND q04 -> z04
+w04 OR e04 -> z05
