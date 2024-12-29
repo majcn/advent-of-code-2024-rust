@@ -132,38 +132,34 @@ pub fn part_two(input: &str) -> Option<String> {
                 return false;
             }
 
-            if operator == Operator::Xor {
-                if input.starts_with("x") || input.starts_with("y") {
-                    if !input_with_operator.contains(&(res, Operator::Xor)) {
+            match operator {
+                Operator::Xor => {
+                    if input.starts_with("x") || input.starts_with("y") {
+                        if !input_with_operator.contains(&(res, Operator::Xor)) {
+                            return true;
+                        }
+
+                        if !input_with_operator.contains(&(res, Operator::And)) {
+                            return true;
+                        }
+                    } else if !res.starts_with("z") {
+                        return true;
+                    }
+                }
+                Operator::And => {
+                    if !input_with_operator.contains(&(res, Operator::Or)) {
+                        return true;
+                    }
+                }
+                Operator::Or => {
+                    if res.starts_with("z") && res != max_z_name {
                         return true;
                     }
 
-                    if !input_with_operator.contains(&(res, Operator::And)) {
+                    if input_with_operator.contains(&(res, Operator::Or)) {
                         return true;
                     }
-
-                    if res.starts_with("z") {
-                        return true;
-                    }
-                } else if !res.starts_with("z") {
-                    return true;
                 }
-            }
-
-            if operator == Operator::And {
-                if res.starts_with("z") {
-                    return true;
-                }
-
-                if (input.starts_with("x") || input.starts_with("y"))
-                    && !input_with_operator.contains(&(res, Operator::Or))
-                {
-                    return true;
-                }
-            }
-
-            if operator == Operator::Or && res.starts_with("z") && res != max_z_name {
-                return true;
             }
 
             false
