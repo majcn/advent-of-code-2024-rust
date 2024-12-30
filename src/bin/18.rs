@@ -5,7 +5,7 @@ use advent_of_code::maneatingape::iter::*;
 use advent_of_code::maneatingape::parse::*;
 use advent_of_code::maneatingape::point::*;
 
-#[derive(Clone)]
+#[derive(Clone, Copy)]
 enum Block {
     Ok,
     Corrupted,
@@ -35,11 +35,7 @@ fn find_shortest_path_cost(grid: &Grid<Block>) -> Option<u32> {
     let end_position = Point::new(grid.width - 1, grid.height - 1);
 
     let mut queue = std::collections::VecDeque::new();
-    let mut seen = Grid {
-        width: grid.width,
-        height: grid.height,
-        bytes: vec![false; (grid.width * grid.height) as usize],
-    };
+    let mut seen = grid.same_size_with(false);
 
     queue.push_front((start_position, 0));
     seen[start_position] = true;
@@ -65,11 +61,7 @@ fn find_shortest_path_cost(grid: &Grid<Block>) -> Option<u32> {
 }
 
 fn generate_grid(data: &[Point], width: i32, height: i32, n: usize) -> Grid<Block> {
-    let mut grid = Grid {
-        width,
-        height,
-        bytes: vec![Block::Ok; (width * height) as usize],
-    };
+    let mut grid = Grid::new(width, height, Block::Ok);
 
     data.iter().take(n).for_each(|&point| {
         grid[point] = Block::Corrupted;
