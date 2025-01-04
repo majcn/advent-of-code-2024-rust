@@ -1,83 +1,43 @@
 advent_of_code::solution!(6);
 
-use advent_of_code::maneatingape::hash::*;
+use advent_of_code::maneatingape::grid::*;
 use advent_of_code::maneatingape::point::*;
 
-type Direction = Point;
+struct Block {}
 
-struct MapSize {
-    min_x: i32,
-    max_x: i32,
-    min_y: i32,
-    max_y: i32,
+impl Block {
+    const WALL: u8 = b'#';
+    const GUARD: u8 = b'^';
 }
 
-struct DataType {
-    position: Point,
-    direction: Direction,
-    obstructions: FastSet<Point>,
-    map_size: MapSize,
+fn parse_data(input: &str) -> (Grid<u8>, Point) {
+    let grid = Grid::parse(input);
+    let start_position = grid.find(Block::GUARD).unwrap();
+
+    (grid, start_position)
 }
 
-impl MapSize {
-    fn contains(&self, point: &Point) -> bool {
-        point.x >= self.min_x
-            && point.x <= self.max_x
-            && point.y >= self.min_y
-            && point.y <= self.max_y
-    }
-}
+fn visited_positions(grid: &Grid<u8>, start_position: Point) -> Vec<Point> {
+    let mut result = vec![];
 
-fn parse_data(input: &str) -> DataType {
-    let my_direction = UP;
-    let mut my_position = Point::new(0, 0);
-    let mut obstructions = FastSet::new();
+    let mut my_position = start_position;
+    let mut my_direction = UP;
 
-    let height = input.lines().count();
-    let width = input.lines().next().unwrap().len();
-
-    for (y, line) in input.lines().enumerate() {
-        for (x, v) in line.bytes().enumerate() {
-            match v {
-                b'#' => {
-                    obstructions.insert(Point::new(x as i32, y as i32));
-                }
-                b'^' => {
-                    my_position = Point::new(x as i32, y as i32);
-                }
-                _ => {}
-            }
-        }
-    }
-
-    DataType {
-        position: my_position,
-        direction: my_direction,
-        obstructions,
-        map_size: MapSize {
-            min_x: 0,
-            max_x: width as i32 - 1,
-            min_y: 0,
-            max_y: height as i32 - 1,
-        },
-    }
-}
-
-fn visited_positions(data: &DataType) -> FastSet<Point> {
-    let mut my_position = data.position;
-    let mut my_direction = data.direction;
-
-    let mut visit = FastSet::new();
+    let mut visit = grid.same_size_with(false);
 
     loop {
-        visit.insert(my_position);
+        if !visit[my_position] {
+            result.push(my_position);
+        };
+
+        visit[my_position] = true;
 
         let next_position = my_position + my_direction;
-        if !data.map_size.contains(&next_position) {
-            return visit;
+        if !grid.contains(next_position) {
+            return result;
         }
 
-        if data.obstructions.contains(&next_position) {
+        if grid[next_position] == Block::WALL {
             my_direction = my_direction.clockwise();
         } else {
             my_position = next_position;
@@ -86,37 +46,45 @@ fn visited_positions(data: &DataType) -> FastSet<Point> {
 }
 
 pub fn part_one(input: &str) -> Option<u32> {
-    let data: DataType = parse_data(input);
+    let (grid, start_position) = parse_data(input);
 
-    let result = visited_positions(&data).len() as u32;
+    let result = visited_positions(&grid, start_position).len() as u32;
 
     Some(result)
 }
 
 pub fn part_two(input: &str) -> Option<u32> {
-    let data: DataType = parse_data(input);
+    let (grid, start_position) = parse_data(input);
 
-    let result = visited_positions(&data)
+    let result = visited_positions(&grid, start_position)
         .into_iter()
-        .filter(|new_obstruction| new_obstruction != &data.position)
-        .filter(|new_obstruction| !data.obstructions.contains(new_obstruction))
-        .filter(|&new_obstruction| {
-            let mut visit = FastSet::new();
+        .filter_map(|new_obstruction| {
+            let mut visit = grid.same_size_with([false, false, false, false]);
 
-            let mut my_position = data.position;
-            let mut my_direction = data.direction;
+            let mut my_position = start_position;
+            let mut my_direction = UP;
 
             loop {
-                if !visit.insert((my_position, my_direction)) {
-                    break true;
+                let visit_index = match my_direction {
+                    UP => 0,
+                    RIGHT => 1,
+                    DOWN => 2,
+                    LEFT => 3,
+                    _ => unreachable!(),
+                };
+
+                if visit[my_position][visit_index] {
+                    break Some(true);
                 }
+
+                visit[my_position][visit_index] = true;
 
                 let next_position = my_position + my_direction;
-                if !data.map_size.contains(&next_position) {
-                    break false;
+                if !grid.contains(next_position) {
+                    break None;
                 }
 
-                if new_obstruction == next_position || data.obstructions.contains(&next_position) {
+                if new_obstruction == next_position || grid[next_position] == Block::WALL {
                     my_direction = my_direction.clockwise();
                 } else {
                     my_position = next_position;
@@ -134,13 +102,15 @@ mod tests {
 
     #[test]
     fn test_part_one() {
-        let result = part_one(&advent_of_code::template::read_file("examples", DAY));
+        let input = advent_of_code::template::read_file("examples", DAY);
+        let result = part_one(&input);
         assert_eq!(result, Some(41));
     }
 
     #[test]
     fn test_part_two() {
-        let result = part_two(&advent_of_code::template::read_file("examples", DAY));
+        let input = advent_of_code::template::read_file("examples", DAY);
+        let result = part_two(&input);
         assert_eq!(result, Some(6));
     }
 }
