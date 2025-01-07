@@ -3,18 +3,15 @@ use quote::{quote, ToTokens};
 use syn::{parse::*, punctuated::*, spanned::*, *};
 
 mod kw {
-    syn::custom_keyword!(ignore);
     syn::custom_keyword!(key_function);
 }
 
 #[derive(Default)]
 struct CacheOptions {
-    ignore: Vec<Ident>,
     key_function: Option<(Ident, Ident)>,
 }
 
 enum CacheOption {
-    Ignore(Vec<Ident>),
     KeyFunction(Ident, Ident),
 }
 
@@ -22,29 +19,16 @@ impl Parse for CacheOption {
     fn parse(input: ParseStream) -> syn::Result<Self> {
         let la = input.lookahead1();
 
-        if la.peek(kw::ignore) {
-            input.parse::<kw::ignore>().unwrap();
-            input.parse::<Token![=]>().unwrap();
-            let bracketed_content;
-            bracketed!(bracketed_content in input);
-
-            let result = Punctuated::<LitStr, Token![,]>::parse_terminated(&bracketed_content)
-                .unwrap()
-                .into_iter()
-                .map(|lit_str| lit_str.parse::<Ident>().unwrap())
-                .collect::<Vec<_>>();
-
-            return Ok(CacheOption::Ignore(result));
-        }
-
         if la.peek(kw::key_function) {
-            input.parse::<kw::key_function>().unwrap();
-            input.parse::<Token![=]>().unwrap();
-            let input = input.parse::<LitStr>().unwrap();
+            input.parse::<kw::key_function>()?;
+            input.parse::<Token![=]>()?;
+            let input = input.parse::<LitStr>()?;
             let input_value = input.value();
 
             let (key_function_name_str, key_function_return_str) =
-                input_value.split_once(" -> ").unwrap();
+                input_value
+                    .split_once(" -> ")
+                    .ok_or(syn::Error::new(input.span(), "Can't split by ` -> `"))?;
             let key_function_name = Ident::new(key_function_name_str, input.span());
             let key_function_return = Ident::new(key_function_return_str, input.span());
 
@@ -62,11 +46,8 @@ impl Parse for CacheOptions {
     fn parse(input: ParseStream) -> syn::Result<Self> {
         let mut opts = Self::default();
 
-        let attrs = Punctuated::<CacheOption, syn::Token![,]>::parse_terminated(input)?;
-
-        for opt in attrs {
+        for opt in Punctuated::<CacheOption, syn::Token![,]>::parse_terminated(input)? {
             match opt {
-                CacheOption::Ignore(ident) => opts.ignore.extend(ident),
                 CacheOption::KeyFunction(name, return_type) => {
                     opts.key_function = Some((name, return_type));
                 }
@@ -77,8 +58,18 @@ impl Parse for CacheOptions {
     }
 }
 
-pub fn memoize_impl(args: TokenStream, item: TokenStream) -> TokenStream {
-    let options: CacheOptions = syn::parse(args).unwrap();
+fn parse_sig_inputs(sig: &Signature) -> (Vec<Pat>, Vec<Type>) {
+    sig.inputs
+        .iter()
+        .filter_map(|arg| match arg {
+            FnArg::Typed(PatType { pat, ty, .. }) => Some((*pat.clone(), *ty.clone())),
+            FnArg::Receiver(_) => None,
+        })
+        .unzip()
+}
+
+pub fn memoize_impl(attr: TokenStream, item: TokenStream) -> TokenStream {
+    let options: CacheOptions = syn::parse(attr).unwrap();
 
     let ItemFn {
         sig,
@@ -87,43 +78,21 @@ pub fn memoize_impl(args: TokenStream, item: TokenStream) -> TokenStream {
         attrs,
     } = parse_macro_input!(item as ItemFn);
 
-    let fn_input_names = sig
-        .inputs
-        .iter()
-        .filter_map(|arg| match arg {
-            FnArg::Typed(PatType { pat, .. }) => Some(*pat.clone()),
-            FnArg::Receiver(_) => None,
-        })
-        .collect::<Vec<_>>();
-
-    let cache_input_names = sig
-        .inputs
-        .iter()
-        .filter_map(|arg| match arg {
-            FnArg::Typed(PatType { pat, .. }) => Some(*pat.clone()),
-            FnArg::Receiver(_) => None,
-        })
-        .filter(|pat| match pat {
-            Pat::Ident(PatIdent { ident, .. }) => {
-                !options.ignore.iter().any(|ignore| ignore == ident)
-            }
-            _ => true,
-        })
-        .collect::<Vec<_>>();
+    let (fn_input_names, fn_input_types) = parse_sig_inputs(&sig);
 
     let fn_return_type = match &sig.output {
         ReturnType::Default => quote! { () },
         ReturnType::Type(_, ty) => ty.to_token_stream(),
     };
 
-    let cache_key_name = match &options.key_function {
+    let cache_key_value = match &options.key_function {
         Some((name, _)) => quote! { #name(#(#fn_input_names),*) },
-        None => quote! { (#(#cache_input_names.clone()),*) },
+        None => quote! { (#(#fn_input_names),*) },
     };
 
-    let cache_key_return_type = match &options.key_function {
+    let cache_key_type = match &options.key_function {
         Some((_, return_type)) => quote! { #return_type },
-        None => fn_return_type.clone(),
+        None => quote! { (#(#fn_input_types),*) },
     };
 
     let internal_fn_name = format!("__{}_internal", sig.ident);
@@ -139,7 +108,7 @@ pub fn memoize_impl(args: TokenStream, item: TokenStream) -> TokenStream {
 
     quote!(
         thread_local! {
-            static #cache_static_var_ident: std::cell::RefCell<advent_of_code::maneatingape::hash::FastMap<#cache_key_return_type, #fn_return_type>> = std::cell::RefCell::new(advent_of_code::maneatingape::hash::FastMapBuilder::new());
+            static #cache_static_var_ident: std::cell::RefCell<advent_of_code::maneatingape::hash::FastMap<#cache_key_type, #fn_return_type>> = std::cell::RefCell::new(advent_of_code::maneatingape::hash::FastMapBuilder::new());
         }
 
         #(#attrs)*
@@ -147,7 +116,7 @@ pub fn memoize_impl(args: TokenStream, item: TokenStream) -> TokenStream {
 
         #(#attrs)*
         #vis #sig {
-            let cache_key = #cache_key_name;
+            let cache_key = #cache_key_value;
 
             let cached_result_option = #cache_static_var_ident.with(|cache| {
                 cache.borrow().get(&cache_key).cloned()
