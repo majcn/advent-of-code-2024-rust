@@ -1,52 +1,42 @@
 advent_of_code::solution!(11);
 
+use advent_of_code_macros::memoize;
+
 use advent_of_code::majcn::math::*;
-use advent_of_code::maneatingape::hash::*;
 use advent_of_code::maneatingape::parse::*;
 
 fn parse_data(input: &str) -> Vec<u32> {
     input.iter_unsigned().collect()
 }
 
-fn calculate_step(v: u64) -> [Option<u64>; 2] {
+fn calculate_step(v: u64) -> Vec<u64> {
     if v == 0 {
-        return [Some(1), None];
+        return vec![1];
     }
 
     let n = v.count_digits() as u32;
     if n % 2 == 0 {
         let split_value = 10_u64.pow(n / 2);
-        return [Some(v / split_value), Some(v % split_value)];
+        return vec![v / split_value, v % split_value];
     }
 
-    [Some(v * 2024), None]
+    vec![v * 2024]
 }
 
-fn calculate<const N: usize>(v: u64, i: usize, cache: &mut FastMap<(usize, u64), u64>) -> u64 {
-    if i == N {
+#[memoize]
+fn calculate(v: u64, n: usize) -> u64 {
+    if n == 0 {
         return 1;
     }
 
-    if let Some(cached_result) = cache.get(&(i, v)) {
-        return *cached_result;
-    }
-
-    let result = calculate_step(v)
+    calculate_step(v)
         .into_iter()
-        .filter_map(|x| Some(calculate::<N>(x?, i + 1, cache)))
-        .sum();
-
-    cache.insert((i, v), result);
-
-    result
+        .map(|x| calculate(x, n - 1))
+        .sum()
 }
 
 fn part_x<const N: usize>(data: Vec<u32>) -> u64 {
-    let mut cache = FastMap::new();
-
-    data.into_iter()
-        .map(|x| calculate::<N>(x as u64, 0, &mut cache))
-        .sum()
+    data.into_iter().map(|x| calculate(x as u64, N)).sum()
 }
 
 pub fn part_one(input: &str) -> Option<u64> {

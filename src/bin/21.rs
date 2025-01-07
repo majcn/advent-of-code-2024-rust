@@ -1,8 +1,9 @@
 advent_of_code::solution!(21);
 
+use advent_of_code_macros::memoize;
+
 use advent_of_code::maneatingape::heap::*;
 use advent_of_code::maneatingape::parse::*;
-use advent_of_code_macros::memoize;
 
 fn parse_data(input: &str) -> Vec<u32> {
     input.lines().map(|line| line.unsigned()).collect()

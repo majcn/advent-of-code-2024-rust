@@ -1,6 +1,6 @@
 advent_of_code::solution!(19);
 
-use advent_of_code::maneatingape::hash::*;
+use advent_of_code_macros::memoize;
 
 fn parse_data(input: &str) -> (Vec<&str>, Vec<&str>) {
     let (left, right) = input.split_once("\n\n").unwrap();
@@ -23,24 +23,21 @@ fn validate_message(message: &str, towels: &[&str]) -> bool {
         .any(|towel| validate_message(&message[towel.len()..], towels))
 }
 
-fn count_valid_message(cache: &mut FastMap<String, u64>, message: &str, towels: &[&str]) -> u64 {
+fn count_valid_message_cache_key(message: &str, _: &[&str]) -> String {
+    String::from(message)
+}
+
+#[memoize(key_function = "count_valid_message_cache_key -> String")]
+fn count_valid_message(message: &str, towels: &[&str]) -> u64 {
     if message.is_empty() {
         return 1;
-    }
-
-    if let Some(&result) = cache.get(message) {
-        return result;
     }
 
     towels
         .iter()
         .filter(|towel| message.len() >= towel.len())
         .filter(|towel| &&&message[..towel.len()] == towel)
-        .map(|towel| {
-            let result = count_valid_message(cache, &message[towel.len()..], towels);
-            cache.insert(String::from(&message[towel.len()..]), result);
-            result
-        })
+        .map(|towel| count_valid_message(&message[towel.len()..], towels))
         .sum()
 }
 
@@ -58,11 +55,9 @@ pub fn part_one(input: &str) -> Option<u32> {
 pub fn part_two(input: &str) -> Option<u64> {
     let (towels, messages) = parse_data(input);
 
-    let mut cache = FastMap::new();
-
     let result = messages
         .into_iter()
-        .map(|message| count_valid_message(&mut cache, message, &towels))
+        .map(|message| count_valid_message(message, &towels))
         .sum();
 
     Some(result)
