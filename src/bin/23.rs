@@ -1,7 +1,5 @@
 advent_of_code::solution!(23);
 
-use std::iter::once;
-
 use advent_of_code::maneatingape::hash::*;
 
 struct Computer {}
@@ -86,7 +84,7 @@ fn bors_kerbosch(
     let pivot = p.union(&x).max_by_key(|v| g[v].len()).unwrap();
 
     for v in p.difference(&g[pivot]).copied().collect::<Vec<_>>() {
-        let next_r = r.iter().chain(once(&v)).copied().collect();
+        let next_r = r.iter().chain(std::iter::once(&v)).copied().collect();
         let next_p = p.intersection(&g[&v]).copied().collect();
         let next_x = x.intersection(&g[&v]).copied().collect();
 
