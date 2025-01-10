@@ -1,127 +1,69 @@
 advent_of_code::solution!(16);
 
+use advent_of_code::majcn::direction::*;
+
 use advent_of_code::maneatingape::grid::*;
-use advent_of_code::maneatingape::hash::*;
 use advent_of_code::maneatingape::heap::*;
 use advent_of_code::maneatingape::point::*;
+
+struct Block {}
+
+impl Block {
+    const WALL: u8 = b'#';
+    const START: u8 = b'S';
+    const FINISH: u8 = b'E';
+}
 
 fn parse_data(input: &str) -> Grid<u8> {
     Grid::parse(input)
 }
 
-fn neighbors(
-    grid: &Grid<u8>,
-    position: Point,
-    direction: Point,
-    cost: u32,
-) -> Vec<(Point, Point, u32)> {
-    let mut result = Vec::with_capacity(4);
-
-    for n_direction in ORTHOGONAL {
-        let n_position = position + n_direction;
-
-        if grid[n_position] != b'#' {
-            let n_cost_diff = match (direction, n_direction) {
-                (LEFT, LEFT) => 1,
-                (LEFT, UP) => 1001,
-                (LEFT, DOWN) => 1001,
-                (LEFT, RIGHT) => 2001,
-
-                (RIGHT, RIGHT) => 1,
-                (RIGHT, UP) => 1001,
-                (RIGHT, DOWN) => 1001,
-                (RIGHT, LEFT) => 2001,
-
-                (UP, UP) => 1,
-                (UP, LEFT) => 1001,
-                (UP, RIGHT) => 1001,
-                (UP, DOWN) => 2001,
-
-                (DOWN, DOWN) => 1,
-                (DOWN, LEFT) => 1001,
-                (DOWN, RIGHT) => 1001,
-                (DOWN, UP) => 2001,
-
-                _ => unreachable!(),
-            };
-
-            result.push((n_position, n_direction, cost + n_cost_diff));
-        }
-    }
-
-    result
-}
-
-fn find_shortest_path_cost(grid: Grid<u8>) -> u32 {
-    let start_position = grid.find(b'S').unwrap();
+fn dijkstra_g_score(grid: Grid<u8>, start_position: Point, end_position: Point) -> Grid<[u32; 4]> {
     let start_direction = RIGHT;
 
     let mut min_heap = MinHeap::new();
-    let mut g_score = FastMap::new();
+    let mut g_score = grid.same_size_with([u32::MAX; 4]);
 
     min_heap.push(0, (start_position, start_direction));
-    g_score.insert((start_position, start_direction), 0);
+    g_score[start_position][direction_to_index(start_direction)] = 0;
 
     while let Some((cost, (position, direction))) = min_heap.pop() {
-        if grid[position] == b'E' {
-            return cost;
+        if position == end_position {
+            return g_score;
         }
 
-        for (n_position, n_direction, n_cost) in neighbors(&grid, position, direction, cost) {
-            if n_cost < *g_score.get(&(n_position, n_direction)).unwrap_or(&u32::MAX) {
-                g_score.insert((n_position, n_direction), n_cost);
+        let neighbors = [
+            (position + direction, direction, cost + 1),
+            (position, direction.clockwise(), cost + 1000),
+            (position, direction.counter_clockwise(), cost + 1000),
+        ];
+
+        for (n_position, n_direction, n_cost) in neighbors {
+            if grid[n_position] == Block::WALL {
+                continue;
+            }
+
+            let n_direction_index = direction_to_index(n_direction);
+            if n_cost < g_score[n_position][n_direction_index] {
+                g_score[n_position][n_direction_index] = n_cost;
                 min_heap.push(n_cost, (n_position, n_direction));
             }
         }
     }
 
-    u32::MAX
-}
-
-fn find_all_shortest_paths_points(grid: Grid<u8>) -> FastSet<Point> {
-    let start_position = grid.find(b'S').unwrap();
-    let start_direction = RIGHT;
-    let start_path = vec![start_position];
-
-    let mut min_heap = MinHeap::new();
-    let mut g_score = FastMap::new();
-
-    min_heap.push(0, (start_position, start_direction, start_path));
-    g_score.insert((start_position, start_direction), 0);
-
-    let mut first_winner_cost = u32::MAX;
-    let mut all_shortest_paths_points = FastSet::new();
-
-    while let Some((cost, (position, direction, path))) = min_heap.pop() {
-        if grid[position] == b'E' {
-            if cost > first_winner_cost {
-                return all_shortest_paths_points;
-            } else {
-                first_winner_cost = cost;
-                all_shortest_paths_points.extend(path.iter());
-            }
-        }
-
-        for (n_position, n_direction, n_cost) in neighbors(&grid, position, direction, cost) {
-            if n_cost <= *g_score.get(&(n_position, n_direction)).unwrap_or(&u32::MAX) {
-                g_score.insert((n_position, n_direction), n_cost);
-
-                let mut n_path = Vec::with_capacity(path.len() + 1);
-                n_path.extend(path.iter());
-                n_path.push(n_position);
-
-                min_heap.push(n_cost, (n_position, n_direction, n_path));
-            }
-        }
-    }
-
-    all_shortest_paths_points
+    g_score
 }
 
 pub fn part_one(input: &str) -> Option<u32> {
     let grid = parse_data(input);
 
-    let result = find_shortest_path_cost(grid);
+    let start_position = grid.find(Block::START).unwrap();
+    let end_position = grid.find(Block::FINISH).unwrap();
+
+    let result = dijkstra_g_score(grid, start_position, end_position)[end_position]
+        .into_iter()
+        .min()
+        .unwrap();
 
     Some(result)
 }
@@ -129,7 +71,50 @@ pub fn part_one(input: &str) -> Option<u32> {
 pub fn part_two(input: &str) -> Option<u32> {
     let grid = parse_data(input);
 
-    let result = find_all_shortest_paths_points(grid).len() as u32;
+    let start_position = grid.find(Block::START).unwrap();
+    let end_position = grid.find(Block::FINISH).unwrap();
+
+    let mut result = grid.same_size_with(false);
+
+    let mut g_score = dijkstra_g_score(grid, start_position, end_position);
+    let best = *g_score[end_position].iter().min().unwrap();
+
+    let mut queue = vec![];
+    queue.extend(
+        g_score[end_position]
+            .iter()
+            .enumerate()
+            .filter(|(_, &p)| p == best)
+            .map(|(i, _)| (best, (end_position, index_to_direction(i)))),
+    );
+
+    while let Some((cost, (position, direction))) = queue.pop() {
+        result[position] = true;
+
+        if position == start_position {
+            continue;
+        }
+
+        let neighbors = match cost {
+            0 => vec![],
+            1..1000 => vec![(position - direction, direction, cost - 1)],
+            _ => vec![
+                (position - direction, direction, cost - 1),
+                (position, direction.clockwise(), cost - 1000),
+                (position, direction.counter_clockwise(), cost - 1000),
+            ],
+        };
+
+        for (n_position, n_direction, n_cost) in neighbors {
+            let n_direction_index = direction_to_index(n_direction);
+            if n_cost == g_score[n_position][n_direction_index] {
+                queue.push((n_cost, (n_position, n_direction)));
+                g_score[n_position][n_direction_index] = u32::MAX;
+            }
+        }
+    }
+
+    let result = result.bytes.into_iter().filter(|&x| x).count() as u32;
 
     Some(result)
 }
@@ -140,13 +125,15 @@ mod tests {
 
     #[test]
     fn test_part_one() {
-        let result = part_one(&advent_of_code::template::read_file("examples", DAY));
+        let input = advent_of_code::template::read_file("examples", DAY);
+        let result = part_one(&input);
         assert_eq!(result, Some(11048));
     }
 
     #[test]
     fn test_part_two() {
-        let result = part_two(&advent_of_code::template::read_file("examples", DAY));
+        let input = advent_of_code::template::read_file("examples", DAY);
+        let result = part_two(&input);
         assert_eq!(result, Some(64));
     }
 }

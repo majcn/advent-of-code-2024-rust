@@ -1,8 +1,15 @@
 advent_of_code::solution!(20);
 
 use advent_of_code::maneatingape::grid::*;
-use advent_of_code::maneatingape::parse::ParseOps;
+use advent_of_code::maneatingape::parse::*;
 use advent_of_code::maneatingape::point::*;
+
+struct Block {}
+
+impl Block {
+    const WALL: u8 = b'#';
+    const START: u8 = b'S';
+}
 
 fn parse_data(input: &str) -> (Grid<u8>, usize) {
     const DEFAULT_LIMIT: usize = 100;
@@ -26,7 +33,7 @@ fn find_path(grid: Grid<u8>, start_position: Point) -> Vec<Point> {
         next_position = ORTHOGONAL.into_iter().map(|d| position + d).find(|&p| {
             (result.len() < 2 || result[result.len() - 2] != p)
                 && grid.contains(p)
-                && grid[p] != b'#'
+                && grid[p] != Block::WALL
         });
     }
 
@@ -34,7 +41,7 @@ fn find_path(grid: Grid<u8>, start_position: Point) -> Vec<Point> {
 }
 
 fn part_x<const N: usize>(grid: Grid<u8>, limit: usize) -> u32 {
-    let start_location = grid.find(b'S').unwrap();
+    let start_location = grid.find(Block::START).unwrap();
 
     let path = find_path(grid, start_location);
     let normal_cost = path.len();

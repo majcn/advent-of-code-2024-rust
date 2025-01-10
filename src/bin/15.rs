@@ -1,5 +1,7 @@
 advent_of_code::solution!(15);
 
+use advent_of_code::majcn::grid::*;
+
 use advent_of_code::maneatingape::grid::*;
 use advent_of_code::maneatingape::point::*;
 
@@ -16,6 +18,7 @@ fn parse_data(input: &str) -> (Grid<u8>, Vec<Point>) {
     let (left, right) = input.split_once("\n\n").unwrap();
 
     let grid = Grid::parse(left);
+
     let instructions = right
         .bytes()
         .filter(|x| !x.is_ascii_whitespace())
@@ -43,17 +46,10 @@ where
         }
     }
 
-    let mut result = 0;
-    for y in 0..grid.height {
-        for x in 0..grid.width {
-            let p = Point::new(x, y);
-            if grid[p] == Block::CRATE {
-                result += y as u32 * 100 + x as u32;
-            }
-        }
-    }
-
-    result
+    grid.points()
+        .filter(|&p| grid[p] == Block::CRATE)
+        .map(|p| p.y as u32 * 100 + p.x as u32)
+        .sum()
 }
 
 fn can_move_part_one(

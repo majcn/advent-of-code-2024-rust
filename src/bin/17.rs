@@ -1,5 +1,7 @@
 advent_of_code::solution!(17);
 
+use advent_of_code_macros::memoize;
+
 use advent_of_code::maneatingape::parse::*;
 
 fn parse_data(input: &str) -> (u64, Vec<u8>) {
@@ -8,6 +10,7 @@ fn parse_data(input: &str) -> (u64, Vec<u8>) {
     (left.unsigned(), right.iter_unsigned().collect())
 }
 
+#[memoize]
 fn run_program(a: u64) -> Vec<u8> {
     let mut result = vec![];
 
@@ -71,13 +74,15 @@ mod tests {
 
     #[test]
     fn test_part_one() {
-        let result = part_one(&advent_of_code::template::read_file("examples", DAY));
+        let input = advent_of_code::template::read_file("examples", DAY);
+        let result = part_one(&input);
         assert_eq!(result, Some(String::from("5,0,4,5")));
     }
 
     #[test]
     fn test_part_two() {
-        let result = part_two(&advent_of_code::template::read_file("examples", DAY));
+        let input = advent_of_code::template::read_file("examples", DAY);
+        let result = part_two(&input);
         assert_eq!(result, Some(188468));
     }
 }

@@ -1,5 +1,7 @@
 advent_of_code::solution!(6);
 
+use advent_of_code::majcn::direction::*;
+
 use advent_of_code::maneatingape::grid::*;
 use advent_of_code::maneatingape::point::*;
 
@@ -10,43 +12,42 @@ impl Block {
     const GUARD: u8 = b'^';
 }
 
-fn parse_data(input: &str) -> (Grid<u8>, Point) {
-    let grid = Grid::parse(input);
-    let start_position = grid.find(Block::GUARD).unwrap();
-
-    (grid, start_position)
+fn parse_data(input: &str) -> Grid<u8> {
+    Grid::parse(input)
 }
 
 fn visited_positions(grid: &Grid<u8>, start_position: Point) -> Vec<Point> {
     let mut result = vec![];
 
-    let mut my_position = start_position;
-    let mut my_direction = UP;
+    let mut position = start_position;
+    let mut direction = UP;
 
     let mut visit = grid.same_size_with(false);
 
     loop {
-        if !visit[my_position] {
-            result.push(my_position);
+        if !visit[position] {
+            result.push(position);
         };
 
-        visit[my_position] = true;
+        visit[position] = true;
 
-        let next_position = my_position + my_direction;
+        let next_position = position + direction;
         if !grid.contains(next_position) {
             return result;
         }
 
         if grid[next_position] == Block::WALL {
-            my_direction = my_direction.clockwise();
+            direction = direction.clockwise();
         } else {
-            my_position = next_position;
+            position = next_position;
         }
     }
 }
 
 pub fn part_one(input: &str) -> Option<u32> {
-    let (grid, start_position) = parse_data(input);
+    let grid = parse_data(input);
+
+    let start_position = grid.find(Block::GUARD).unwrap();
 
     let result = visited_positions(&grid, start_position).len() as u32;
 
@@ -54,40 +55,36 @@ pub fn part_one(input: &str) -> Option<u32> {
 }
 
 pub fn part_two(input: &str) -> Option<u32> {
-    let (grid, start_position) = parse_data(input);
+    let grid = parse_data(input);
+
+    let start_position = grid.find(Block::GUARD).unwrap();
 
     let result = visited_positions(&grid, start_position)
         .into_iter()
         .filter_map(|new_obstruction| {
             let mut visit = grid.same_size_with([false, false, false, false]);
 
-            let mut my_position = start_position;
-            let mut my_direction = UP;
+            let mut position = start_position;
+            let mut direction = UP;
 
             loop {
-                let visit_index = match my_direction {
-                    UP => 0,
-                    RIGHT => 1,
-                    DOWN => 2,
-                    LEFT => 3,
-                    _ => unreachable!(),
-                };
+                let direction_index = direction_to_index(direction);
 
-                if visit[my_position][visit_index] {
+                if visit[position][direction_index] {
                     break Some(true);
                 }
 
-                visit[my_position][visit_index] = true;
+                visit[position][direction_index] = true;
 
-                let next_position = my_position + my_direction;
+                let next_position = position + direction;
                 if !grid.contains(next_position) {
                     break None;
                 }
 
                 if new_obstruction == next_position || grid[next_position] == Block::WALL {
-                    my_direction = my_direction.clockwise();
+                    direction = direction.clockwise();
                 } else {
-                    my_position = next_position;
+                    position = next_position;
                 }
             }
         })

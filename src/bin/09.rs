@@ -63,11 +63,9 @@ pub fn part_one(input: &str) -> Option<u64> {
                 file.position + file_offset - file_free_swap
             };
 
-            result += file.id * position;
+            result += file.id as u64 * position as u64;
         }
     }
-
-    let result = result as u64;
 
     Some(result)
 }
@@ -89,10 +87,9 @@ pub fn part_two(input: &str) -> Option<u64> {
             free.size -= file.size;
         }
 
-        result += file.id * (file.size * file.position + (file.size - 1).sum_of_natural_numbers());
+        let position = file.size * file.position + (file.size - 1).sum_of_natural_numbers();
+        result += file.id as u64 * position as u64;
     }
-
-    let result = result as u64;
 
     Some(result)
 }
@@ -103,13 +100,15 @@ mod tests {
 
     #[test]
     fn test_part_one() {
-        let result = part_one(&advent_of_code::template::read_file("examples", DAY));
+        let input = advent_of_code::template::read_file("examples", DAY);
+        let result = part_one(&input);
         assert_eq!(result, Some(1928));
     }
 
     #[test]
     fn test_part_two() {
-        let result = part_two(&advent_of_code::template::read_file("examples", DAY));
+        let input = advent_of_code::template::read_file("examples", DAY);
+        let result = part_two(&input);
         assert_eq!(result, Some(2858));
     }
 }

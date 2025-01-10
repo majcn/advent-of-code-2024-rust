@@ -1,5 +1,7 @@
 advent_of_code::solution!(12);
 
+use advent_of_code::majcn::grid::*;
+
 use advent_of_code::maneatingape::grid::*;
 use advent_of_code::maneatingape::hash::*;
 use advent_of_code::maneatingape::point::*;
@@ -14,51 +16,48 @@ fn parse_data(input: &str) -> Grid<u8> {
     Grid::parse(input)
 }
 
-fn find_gardens(grid: &Grid<u8>) -> Vec<Garden> {
+fn find_gardens(grid: Grid<u8>) -> Vec<Garden> {
     let mut visited = grid.same_size_with(false);
 
     let mut gardens = vec![];
 
-    for y in 0..grid.height {
-        for x in 0..grid.width {
-            let start_location = Point::new(x, y);
-            if visited[start_location] {
+    for p in grid.points() {
+        if visited[p] {
+            continue;
+        }
+
+        let plot = grid[p];
+
+        let mut area = 0;
+        let mut perimeter = 0;
+        let mut edges = FastSet::new();
+
+        let mut queue = vec![p];
+        while let Some(position) = queue.pop() {
+            if visited[position] {
                 continue;
             }
+            visited[position] = true;
 
-            let plot = grid[start_location];
+            area += 1;
+            perimeter += 4;
 
-            let mut area = 0;
-            let mut perimeter = 0;
-            let mut edges = FastSet::new();
-
-            let mut queue = vec![start_location];
-            while let Some(position) = queue.pop() {
-                if visited[position] {
-                    continue;
-                }
-                visited[position] = true;
-
-                area += 1;
-                perimeter += 4;
-
-                for direction in ORTHOGONAL {
-                    let new_position = position + direction;
-                    if grid.contains(new_position) && grid[new_position] == plot {
-                        queue.push(new_position);
-                        perimeter -= 1;
-                    } else {
-                        edges.insert((position, direction));
-                    }
+            for direction in ORTHOGONAL {
+                let new_position = position + direction;
+                if grid.contains(new_position) && grid[new_position] == plot {
+                    queue.push(new_position);
+                    perimeter -= 1;
+                } else {
+                    edges.insert((position, direction));
                 }
             }
-
-            gardens.push(Garden {
-                area,
-                perimeter,
-                edges,
-            });
         }
+
+        gardens.push(Garden {
+            area,
+            perimeter,
+            edges,
+        });
     }
 
     gardens
@@ -104,7 +103,7 @@ fn find_sides(mut edges: FastSet<(Point, Point)>) -> u32 {
 pub fn part_one(input: &str) -> Option<u32> {
     let grid = parse_data(input);
 
-    let result = find_gardens(&grid)
+    let result = find_gardens(grid)
         .into_iter()
         .map(|garden| garden.area * garden.perimeter)
         .sum();
@@ -115,7 +114,7 @@ pub fn part_one(input: &str) -> Option<u32> {
 pub fn part_two(input: &str) -> Option<u32> {
     let grid = parse_data(input);
 
-    let result = find_gardens(&grid)
+    let result = find_gardens(grid)
         .into_iter()
         .map(|garden| garden.area * find_sides(garden.edges))
         .sum();

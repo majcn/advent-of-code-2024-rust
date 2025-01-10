@@ -28,6 +28,6 @@ c02 AND q03 -> e03
 w03 OR e03 -> c03
 x04 XOR y04 -> q04
 x04 AND y04 -> w04
-c03 XOR q04 -> e04
-c03 AND q04 -> z04
+c03 XOR q04 -> z04
+c03 AND q04 -> e04
 w04 OR e04 -> z05

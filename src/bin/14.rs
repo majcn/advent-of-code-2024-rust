@@ -1,7 +1,5 @@
 advent_of_code::solution!(14);
 
-use advent_of_code::majcn::math::*;
-use advent_of_code::maneatingape::hash::*;
 use advent_of_code::maneatingape::iter::*;
 use advent_of_code::maneatingape::parse::*;
 use advent_of_code::maneatingape::point::*;
@@ -35,45 +33,25 @@ fn parse_data(input: &str) -> (Vec<Robot>, i32, i32) {
 pub fn part_one(input: &str) -> Option<u32> {
     let (robots, width, height) = parse_data(input);
 
-    let mut robots = robots;
-
-    for _ in 0..100 {
-        for robot in robots.iter_mut() {
-            robot.position.x = (robot.position.x + robot.velocity.x).modulo(width);
-            robot.position.y = (robot.position.y + robot.velocity.y).modulo(height);
-        }
-    }
-
-    let width_center_start = width / 2 + 1;
-    let width_center_end = width / 2 - 1;
-    let height_center_start = height / 2 + 1;
-    let height_center_end = height / 2 - 1;
+    const TIME: i32 = 100;
 
     let mut quadrants = [0; 4];
     for robot in robots {
-        if (0..=width_center_end).contains(&robot.position.x)
-            && (0..=height_center_end).contains(&robot.position.y)
-        {
-            quadrants[0] += 1;
+        let x = (robot.position.x + TIME * robot.velocity.x).rem_euclid(width);
+        let y = (robot.position.y + TIME * robot.velocity.y).rem_euclid(height);
+
+        if x == width / 2 || y == height / 2 {
+            continue;
         }
 
-        if (0..=width_center_end).contains(&robot.position.x)
-            && (height_center_start..height).contains(&robot.position.y)
-        {
-            quadrants[1] += 1;
-        }
+        let i = match (x < width / 2, y < height / 2) {
+            (true, true) => 0,
+            (true, false) => 1,
+            (false, true) => 2,
+            (false, false) => 3,
+        };
 
-        if (width_center_start..width).contains(&robot.position.x)
-            && (0..=height_center_end).contains(&robot.position.y)
-        {
-            quadrants[2] += 1;
-        }
-
-        if (width_center_start..width).contains(&robot.position.x)
-            && (height_center_start..height).contains(&robot.position.y)
-        {
-            quadrants[3] += 1;
-        }
+        quadrants[i] += 1;
     }
 
     let result = quadrants.into_iter().product();
@@ -84,26 +62,26 @@ pub fn part_one(input: &str) -> Option<u32> {
 pub fn part_two(input: &str) -> Option<u32> {
     let (robots, width, height) = parse_data(input);
 
-    let mut robots = robots;
+    let result = (0..width * height)
+        .find(|&time| {
+            let mut seen = vec![false; width as usize * height as usize];
+            for robot in robots.iter() {
+                let x = (robot.position.x + time * robot.velocity.x).rem_euclid(width);
+                let y = (robot.position.y + time * robot.velocity.y).rem_euclid(height);
+                let i = x as usize + y as usize * width as usize;
 
-    let mut time = 0;
-    'outer: loop {
-        for robot in robots.iter_mut() {
-            robot.position.x = (robot.position.x + robot.velocity.x).modulo(width);
-            robot.position.y = (robot.position.y + robot.velocity.y).modulo(height);
-        }
+                if seen[i] {
+                    return false;
+                }
 
-        time += 1;
-
-        let mut robots_set = FastSet::with_capacity(robots.len());
-        for robot in robots.iter() {
-            if !robots_set.insert(robot.position) {
-                continue 'outer;
+                seen[i] = true;
             }
-        }
 
-        return Some(time);
-    }
+            true
+        })
+        .unwrap() as u32;
+
+    Some(result)
 }
 
 #[cfg(test)]
@@ -112,13 +90,15 @@ mod tests {
 
     #[test]
     fn test_part_one() {
-        let result = part_one(&advent_of_code::template::read_file("examples", DAY));
+        let input = advent_of_code::template::read_file("examples", DAY);
+        let result = part_one(&input);
         assert_eq!(result, Some(12));
     }
 
     #[test]
     fn test_part_two() {
-        let result = part_two(&advent_of_code::template::read_file("examples", DAY));
+        let input = advent_of_code::template::read_file("examples", DAY);
+        let result = part_two(&input);
         assert_eq!(result, Some(1));
     }
 }

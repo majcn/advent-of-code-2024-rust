@@ -1,13 +1,11 @@
 advent_of_code::solution!(22);
 
-use advent_of_code::maneatingape::hash::*;
 use advent_of_code::maneatingape::parse::*;
 
 fn parse_data(input: &str) -> Vec<u32> {
     input.lines().map(|line| line.unsigned()).collect()
 }
 
-const MASK_8_BITS: u32 = (1 << 8) - 1;
 const MASK_24_BITS: u32 = (1 << 24) - 1;
 
 #[allow(clippy::let_and_return)]
@@ -24,9 +22,7 @@ pub fn part_one(input: &str) -> Option<u64> {
 
     let result = data
         .into_iter()
-        .map(|secret_number| {
-            (0..2000).fold(secret_number, |secret_number, _| next_price(secret_number)) as u64
-        })
+        .map(|x| (0..2000).fold(x, |x, _| next_price(x)) as u64)
         .sum();
 
     Some(result)
@@ -35,35 +31,45 @@ pub fn part_one(input: &str) -> Option<u64> {
 pub fn part_two(input: &str) -> Option<u32> {
     let data = parse_data(input);
 
-    let mut prices = FastMap::new();
+    #[inline]
+    fn to_index(a: u32, b: u32, c: u32, d: u32) -> usize {
+        const K_A: u32 = 19 * 19 * 19;
+        const K_B: u32 = 19 * 19;
+        const K_C: u32 = 19;
+
+        (a * K_A + b * K_B + c * K_C + d) as usize
+    }
+
+    let mut ids = vec![usize::MAX; 19 * 19 * 19 * 19];
+    let mut best_results = vec![0; 19 * 19 * 19 * 19];
 
     for (i, secret_number) in data.into_iter().enumerate() {
         let mut secret_number = secret_number;
         let mut prev_cost = secret_number % 10;
 
-        let mut four_changes = 0;
+        let mut a;
+        let (mut b, mut c, mut d) = (0, 0, 0);
 
         for n in 0..2000 {
             secret_number = next_price(secret_number);
             let cost = secret_number % 10;
 
-            four_changes <<= 8;
-            four_changes |= cost.wrapping_sub(prev_cost) & MASK_8_BITS;
+            (a, b, c, d) = (b, c, d, cost + 9 - prev_cost);
 
             if n >= 4 {
-                prices.entry((i, four_changes)).or_insert(cost);
+                let index = to_index(a, b, c, d);
+
+                if ids[index] != i {
+                    best_results[index] += cost;
+                    ids[index] = i;
+                }
             }
 
             prev_cost = cost;
         }
     }
 
-    let mut best_results = FastMap::with_capacity(prices.len());
-    for ((_, four_changes), cost) in prices.into_iter() {
-        *best_results.entry(four_changes).or_insert(0) += cost;
-    }
-
-    let result = best_results.into_values().max().unwrap();
+    let result = best_results.into_iter().max().unwrap();
 
     Some(result)
 }

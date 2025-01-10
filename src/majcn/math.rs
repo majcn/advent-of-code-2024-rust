@@ -1,19 +1,3 @@
-pub trait Modulo<T> {
-    fn modulo(self, m: T) -> T;
-}
-
-impl Modulo<i32> for i32 {
-    #[inline]
-    fn modulo(self, m: i32) -> i32 {
-        let result = self % m;
-        if result < 0 {
-            result + m
-        } else {
-            result
-        }
-    }
-}
-
 pub trait SumOfNaturalNumbers<T> {
     fn sum_of_natural_numbers(self) -> T;
 }

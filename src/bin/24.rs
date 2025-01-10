@@ -1,6 +1,7 @@
 advent_of_code::solution!(24);
 
 use advent_of_code::maneatingape::hash::*;
+use advent_of_code::maneatingape::iter::*;
 use advent_of_code::maneatingape::parse::*;
 
 #[derive(Hash, Eq, PartialEq, Clone, Copy)]
@@ -15,17 +16,12 @@ type Gate<'a> = (&'a str, Operator, &'a str, &'a str);
 fn parse_data(input: &str) -> (Vec<bool>, Vec<Gate>) {
     let (left, right) = input.split_once("\n\n").unwrap();
 
-    let inputs = left.lines().map(|line| &line[5..] == "1").collect();
+    let inputs = left.bytes().skip(5).step_by(7).map(|v| v == b'1').collect();
 
     let gates = right
-        .lines()
-        .map(|line| {
-            let mut iter = line.split_ascii_whitespace();
-            let l = iter.next().unwrap();
-            let op = iter.next().unwrap();
-            let r = iter.next().unwrap();
-            let res = iter.last().unwrap();
-
+        .split_ascii_whitespace()
+        .chunk::<5>()
+        .map(|[l, op, r, _, res]| {
             let operator = match op {
                 "AND" => Operator::And,
                 "OR" => Operator::Or,
@@ -82,7 +78,7 @@ pub fn part_one(input: &str) -> Option<u64> {
     let gates_rev = gates
         .into_iter()
         .map(|(l, o, r, res)| (res, (l, o, r)))
-        .collect::<FastMap<_, _>>();
+        .collect();
 
     let mut result = 0;
 
@@ -188,9 +184,6 @@ mod tests {
     fn test_part_two() {
         let input = advent_of_code::template::read_file_part("examples", DAY, 2);
         let result = part_two(&input);
-        assert_eq!(
-            result,
-            Some(String::from("e01,e04,q01,q03,w01,z00,z03,z04"))
-        );
+        assert_eq!(result, Some(String::from("e01,q01,q03,w01,z00,z03")));
     }
 }

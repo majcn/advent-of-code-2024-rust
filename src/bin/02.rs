@@ -18,8 +18,8 @@ fn find_broken_position<'a, I>(mut iter: I) -> Option<usize>
 where
     I: Iterator<Item = &'a i32>,
 {
-    let first = *iter.next().unwrap();
-    let second = *iter.next().unwrap();
+    let first = *iter.next()?;
+    let second = *iter.next()?;
     let inc = second > first;
 
     if !is_valid_pair(first, second, inc) {
@@ -27,20 +27,18 @@ where
     }
 
     let mut x = second;
-    let mut i = 1;
-    for &next_x in iter {
+    for (i, &next_x) in iter.enumerate() {
         if !is_valid_pair(x, next_x, inc) {
-            return Some(i);
+            return Some(i + 1);
         }
 
         x = next_x;
-        i += 1;
     }
 
     None
 }
 
-fn find_broken_position_with_problem_dampener(line: &[i32]) -> Option<usize> {
+fn find_broken_position_with_dampener(line: &[i32]) -> Option<usize> {
     let broken_position = find_broken_position(line.iter())?;
 
     let left = &line[..broken_position];
@@ -62,26 +60,33 @@ fn find_broken_position_with_problem_dampener(line: &[i32]) -> Option<usize> {
     Some(broken_position)
 }
 
-pub fn part_one(input: &str) -> Option<usize> {
+fn part_x(data: Vec<Vec<i32>>, use_dampener: bool) -> u32 {
+    let result = data
+        .iter()
+        .filter_map(|line| {
+            if use_dampener {
+                find_broken_position_with_dampener(line)
+            } else {
+                find_broken_position(line.iter())
+            }
+        })
+        .count();
+
+    (data.len() - result) as u32
+}
+
+pub fn part_one(input: &str) -> Option<u32> {
     let data = parse_data(input);
 
-    let result = data
-        .into_iter()
-        .map(|line| find_broken_position(line.iter()))
-        .filter(|x| x.is_none())
-        .count();
+    let result = part_x(data, false);
 
     Some(result)
 }
 
-pub fn part_two(input: &str) -> Option<usize> {
+pub fn part_two(input: &str) -> Option<u32> {
     let data = parse_data(input);
 
-    let result = data
-        .into_iter()
-        .map(|line| find_broken_position_with_problem_dampener(&line))
-        .filter(|x| x.is_none())
-        .count();
+    let result = part_x(data, true);
 
     Some(result)
 }
@@ -92,13 +97,15 @@ mod tests {
 
     #[test]
     fn test_part_one() {
-        let result = part_one(&advent_of_code::template::read_file("examples", DAY));
+        let input = advent_of_code::template::read_file("examples", DAY);
+        let result = part_one(&input);
         assert_eq!(result, Some(2));
     }
 
     #[test]
     fn test_part_two() {
-        let result = part_two(&advent_of_code::template::read_file("examples", DAY));
+        let input = advent_of_code::template::read_file("examples", DAY);
+        let result = part_two(&input);
         assert_eq!(result, Some(4));
     }
 }

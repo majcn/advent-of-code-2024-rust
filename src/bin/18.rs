@@ -1,5 +1,7 @@
 advent_of_code::solution!(18);
 
+use std::collections::VecDeque;
+
 use advent_of_code::maneatingape::grid::*;
 use advent_of_code::maneatingape::iter::*;
 use advent_of_code::maneatingape::parse::*;
@@ -30,11 +32,11 @@ fn parse_data(input: &str) -> (Vec<Point>, i32, i32, usize) {
     (data, width, height, first_take as usize)
 }
 
-fn find_shortest_path_cost(grid: &Grid<Block>) -> Option<u32> {
+fn find_shortest_path_cost(grid: Grid<Block>) -> Option<u32> {
     let start_position = Point::new(0, 0);
     let end_position = Point::new(grid.width - 1, grid.height - 1);
 
-    let mut queue = std::collections::VecDeque::new();
+    let mut queue = VecDeque::new();
     let mut seen = grid.same_size_with(false);
 
     queue.push_front((start_position, 0));
@@ -73,7 +75,7 @@ fn generate_grid(data: &[Point], width: i32, height: i32, n: usize) -> Grid<Bloc
 pub fn part_one(input: &str) -> Option<u32> {
     let (data, width, height, first_take) = parse_data(input);
 
-    let result = find_shortest_path_cost(&generate_grid(&data, width, height, first_take))?;
+    let result = find_shortest_path_cost(generate_grid(&data, width, height, first_take))?;
 
     Some(result)
 }
@@ -86,7 +88,7 @@ pub fn part_two(input: &str) -> Option<String> {
     while (b - a) > 1 {
         let c = (a + b) / 2;
 
-        if find_shortest_path_cost(&generate_grid(&data, width, height, c)).is_some() {
+        if find_shortest_path_cost(generate_grid(&data, width, height, c)).is_some() {
             a = c;
         } else {
             b = c;

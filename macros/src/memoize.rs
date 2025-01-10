@@ -129,7 +129,7 @@ pub fn memoize_impl(attr: TokenStream, item: TokenStream) -> TokenStream {
             let result = #internal_fn_ident (#(#fn_input_names),*);
 
             #cache_static_var_ident.with(|cache| {
-                cache.borrow_mut().insert(cache_key, result);
+                cache.borrow_mut().insert(cache_key, result.clone());
             });
 
             result

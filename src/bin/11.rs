@@ -3,6 +3,7 @@ advent_of_code::solution!(11);
 use advent_of_code_macros::memoize;
 
 use advent_of_code::majcn::math::*;
+
 use advent_of_code::maneatingape::parse::*;
 
 fn parse_data(input: &str) -> Vec<u32> {
@@ -61,13 +62,15 @@ mod tests {
 
     #[test]
     fn test_part_one() {
-        let result = part_one(&advent_of_code::template::read_file("examples", DAY));
+        let input = advent_of_code::template::read_file("examples", DAY);
+        let result = part_one(&input);
         assert_eq!(result, Some(55312));
     }
 
     #[test]
     fn test_part_two() {
-        let result = part_two(&advent_of_code::template::read_file("examples", DAY));
+        let input = advent_of_code::template::read_file("examples", DAY);
+        let result = part_two(&input);
         assert_eq!(result, Some(65601038650482));
     }
 }
